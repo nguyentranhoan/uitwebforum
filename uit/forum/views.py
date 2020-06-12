@@ -26,7 +26,7 @@ def login(request):
     username = request.data.get("username")
     password = request.data.get("password")
     # print(username, "\n", password)
-    info = Users.objects.filter(usernam=username, password=password).first()
+    info = Users.objects.filter(username=username, password=password).first()
     if info is None:
         return Response({"message": "user does not exist!"})
     else:
@@ -79,9 +79,29 @@ class CommentUpdate(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
 
 
-class SubscriberInfo(generics.CreateAPIView):
-    queryset = Subscribers.objects.all()
-    serializer_class = SubscriberSerializer
+@api_view(['POST'])
+def SubsTopic(request):
+    user_id = request.data.get("user_id")
+    topic_id = request.data.get("topic_id")
+    info = UserInfo.objects.create(user=user_id, topic=topic_id)
+    info.save()
+    return Response(info.id)
+
+
+@api_view(['POST'])
+def LikedTopic(request):
+    user_id = request.data.get("user_id")
+    topic_id = request.data.get("topic_id")
+    # print(username, "\n", password)
+    info = Subscribers.objects.filter(user=user_id, topic=topic_id)[:1].get()
+    print(info.is_liked)
+    if info.is_liked:
+        print(info.is_liked)
+        Subscribers.objects.filter(user=user_id, topic=topic_id).update(is_liked=False)
+    else:
+        print(info.is_liked)
+        Subscribers.objects.filter(user=user_id, topic=topic_id).update(is_liked=True)
+    return Response(info.id)
 #
 #
 # class QuestionViewSet(viewsets.ModelViewSet):

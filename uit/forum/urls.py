@@ -4,7 +4,8 @@ from . import views
 
 app_name = 'forum'
 urlpatterns = [
-    path("subscriber/", views.SubscriberInfo.as_view()),
+    path("subscribe/liked", views.LikedTopic),
+    path("subscribe/", views.SubsTopic),
     path("comment/<int:pk>", views.CommentUpdate.as_view()),
     path("comment/", views.CommentCreation.as_view()),
     path("topic/", views.TopicInfo.as_view()),
