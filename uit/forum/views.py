@@ -2,8 +2,10 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 
-from .models import Users, Topics, Comment, Subscribers
-from .serializers import QuestionSerializer, UserSerializer, TopicSerializer, CommentSerializer, SubscriberSerializer
+from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic
+from .serializers import QuestionSerializer, UserSerializer, TopicSerializer, CommentSerializer, SubscriberSerializer, \
+    IsLikedTopicSerializer, TopicCommentSerializer, UserLikedTopicSerializer, ListUserSerializer, \
+    UpdateCommentSerializer
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.decorators import api_view
@@ -64,9 +66,35 @@ class UserInfo(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
 
 
-class TopicInfo(generics.ListCreateAPIView):
+class ListTopic(generics.ListCreateAPIView):
     queryset = Topics .objects.all()
     serializer_class = TopicSerializer
+
+
+def createTopicStatistic(topic_id):
+    statistic = TopicStatistic.objects.filter(topic__id=topic_id).first()
+    topic_object = Topics.objects.get(pk=topic_id)
+    if statistic is None:
+        topic_statistic = TopicStatistic.objects.create(topic=topic_object)
+        return Response(topic_statistic.views)
+    else:
+        return Response("Topic statistic exists!!!")
+
+
+# class TopicCreation(generics.CreateAPIView):
+#     queryset = Topics .objects.all()
+#     serializer_class = TopicSerializer
+@api_view(['POST'])
+def createTopic(request):
+    user_id = request.data.get("user_id")
+    content = request.data.get("content")
+    user = Users.objects.get(pk=user_id)
+    if user is None:
+        return Response("user does not exist!")
+    else:
+        topic = Topics.objects.create(user=user, content=content)
+        createTopicStatistic(topic.id)
+        return Response(topic.id)
 
 
 class CommentCreation(generics.CreateAPIView):
@@ -74,79 +102,83 @@ class CommentCreation(generics.CreateAPIView):
     serializer_class = CommentSerializer
 
 
-class CommentUpdate(generics.RetrieveUpdateDestroyAPIView):
+class CommentUpdate(generics.UpdateAPIView):
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    serializer_class = UpdateCommentSerializer
+
+
+def createTopicStatistic(topic_id):
+    statistic = TopicStatistic.objects.filter(topic__id=topic_id).first()
+    topic_object = Topics.objects.get(pk=topic_id)
+    if statistic is None:
+        topic_statistic = TopicStatistic.objects.create(topic=topic_object)
+        return Response(topic_statistic.views)
+    else:
+        return Response("Topic statistic exists!!!")
 
 
 @api_view(['POST'])
-def SubsTopic(request):
+def subsTopic(request):
     user_id = request.data.get("user_id")
     topic_id = request.data.get("topic_id")
-    info = UserInfo.objects.create(user=user_id, topic=topic_id)
-    info.save()
-    return Response(info.id)
+    info = Subscribers.objects.filter(user__id=user_id, topic__id=topic_id).first()
+    user = Users.objects.get(pk=user_id)
+    topic = Topics.objects.get(pk=topic_id)
+    if info is None:
+        subscriber = Subscribers.objects.create(user=user,topic=topic)
+        return Response(subscriber.id)
+    else:
+        return Response(f"Topic: '{topic.content}' is already subscribed by user: {user.username}")
 
 
 @api_view(['POST'])
 def LikedTopic(request):
     user_id = request.data.get("user_id")
     topic_id = request.data.get("topic_id")
-    # print(username, "\n", password)
-    info = Subscribers.objects.filter(user=user_id, topic=topic_id)[:1].get()
-    print(info.is_liked)
+    user = Users.objects.get(pk=user_id)
+    topic = Topics.objects.get(pk=topic_id)
+    info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id)[:1].get()
     if info.is_liked:
         print(info.is_liked)
-        Subscribers.objects.filter(user=user_id, topic=topic_id).update(is_liked=False)
+        IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=False)
     else:
         print(info.is_liked)
-        Subscribers.objects.filter(user=user_id, topic=topic_id).update(is_liked=True)
+        IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=True)
     return Response(info.id)
-#
-#
-# class QuestionViewSet(viewsets.ModelViewSet):
-#     # queryset = Result.objects.raw("""select
-#     #                                     polls_question.question_text,
-#     #                                     polls_question.id,
-#     #                                     result.point
-#     #                                 from
-#     #                                     result join polls_question
-#     #                                     on result.question_id = polls_question.id
-#     #                                 where
-#     #                                     polls_question.id =1""")
-#     queryset = Question.objects.all()
-#     serializer_class = QuestionSerializer
-#     # qr = Result.objects.raw("select * from result join question on result.question = question.id where question.id =1")
-#
-#
 
-#
-#
-# class QuestionListCreateAPIView(APIView):
-#
-#     def get(self, request):
-#         articles = models.Question.objects.all()
-#         serializer = serializers.QuestionSerializer(articles, many=True)
-#         return Response(serializer.data)
-#
-#     def post(self, request):
-#         serializer = serializers.QuestionSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# class ChoiceList(generics.ListCreateAPIView):
-#     queryset = Choice.objects.order_by('id')[0:5]
-#     serializer_class = ChoiceSerializer
-#
-#
-# class ChoiceDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Choice.objects.all()
-#     serializer_class = ChoiceSerializer
-#
-#
-# class Login(generics.ListCreateAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
+
+class SubscriberCreate(generics.CreateAPIView):
+    queryset = Subscribers.objects.all()
+    serializer_class = SubscriberSerializer
+
+
+class IsLikedTopicCreate(generics.CreateAPIView):
+    queryset = IsLikedTopic.objects.all()
+    serializer_class = IsLikedTopicSerializer
+
+
+@api_view(['POST'])
+def DislikeTopic(request):
+    user_id = request.data.get("user")
+    topic_id = request.data.get("topic")
+    info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id).first()
+    if info is None:
+        return Response("User has not liked this topic yet!!!")
+    else:
+        info.delete()
+        return Response(f"User: {user_id} no longer likes this topic: {topic_id}")
+
+
+class ListUserForSupportListTopicComment(generics.CreateAPIView):
+    queryset = Users.objects.all()
+    serializer_class = ListUserSerializer
+
+
+class ListTopicComment(generics.CreateAPIView):
+    queryset = Topics.objects.all()
+    serializer_class = TopicCommentSerializer
+
+
+class TestTest(generics.RetrieveAPIView):
+    queryset = Users.objects.all()
+    serializer_class = UserLikedTopicSerializer
