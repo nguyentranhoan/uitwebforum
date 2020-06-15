@@ -1,29 +1,6 @@
 from rest_framework import serializers
-from .models import Users, UserAuth, Subscribers, Topics, Comment, TopicStatistic, IsLikedTopic
 
-
-class ResultSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Topics
-        fields = ['point']
-
-
-class ChoiceSerializer(serializers.ModelSerializer):
-    choice_result = ResultSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Topics
-        fields = ['id', 'question', 'choice_text', 'votes', 'choice_result']
-
-
-class QuestionSerializer(serializers.HyperlinkedModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
-    queryset = Topics.objects.all()
-    # question_result = ResultSerializer(queryset, many=True, read_only=True)
-
-    class Meta:
-        model = Topics
-        fields = ['id', 'question_text', 'pub_date', 'choices']
+from .models import Users, Subscribers, Topics, Comment, IsLikedTopic
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,7 +14,7 @@ class ListUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'email', 'avatar']
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -73,14 +50,14 @@ class SubscriberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscribers
-        fields = ['user', 'topic']
+        fields = ['id', 'user', 'topic']
 
 
 class IsLikedTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IsLikedTopic
-        fields = ['user', 'topic']
+        fields = ['id', 'user', 'topic']
 
 
 class TopicCommentSerializer(serializers.ModelSerializer):
@@ -92,11 +69,12 @@ class TopicCommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'content', 'topic_comment']
 
 
-class UserLikedTopicSerializer(serializers.ModelSerializer):
+class UserTotalInfoSerializer(serializers.ModelSerializer):
     user_likes_topic = IsLikedTopicSerializer(many=True, read_only=True)
     user_topic = TopicSerializer(many=True, read_only=True)
     user_comment = CommentSerializer(many=True, read_only=True)
+    user_subscriber = SubscriberSerializer(many=True, read_only=True)
 
     class Meta:
         model = Users
-        fields = ['username', 'user_topic', 'user_comment', 'user_likes_topic']
+        fields = ['id', 'username', 'user_topic', 'user_comment', 'user_likes_topic', 'user_subscriber']
