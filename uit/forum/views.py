@@ -4,9 +4,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic
+from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic, Categories
 from .serializers import UserSerializer, TopicSerializer, CommentSerializer, ListUserSerializer, \
-    UpdateCommentSerializer, UserTotalInfoSerializer
+    UpdateCommentSerializer, UserTotalInfoSerializer, CategorySerializer
 
 
 # from django.contrib.auth.models import User
@@ -60,11 +60,17 @@ class UserInfo(generics.RetrieveUpdateAPIView):
     queryset = Users.objects.all()
     serializer_class = UserSerializer
 
+class TopicInfo(generics.RetrieveUpdateAPIView):
+    queryset = Topics.objects.all()
+    serializer_class = TopicSerializer
 
 class ListTopic(generics.ListCreateAPIView):
     queryset = Topics.objects.all()
     serializer_class = TopicSerializer
 
+class ListCategory(generics.ListCreateAPIView):
+    queryset = Categories.objects.all()
+    serializer_class = CategorySerializer
 
 def createTopicStatistic(topic_id):
     statistic = TopicStatistic.objects.filter(topic__id=topic_id).first()
@@ -78,12 +84,15 @@ def createTopicStatistic(topic_id):
 @api_view(['POST'])
 def createTopic(request):
     user_id = request.data.get("user_id")
+    title = request.data.get("title")
     content = request.data.get("content")
+    category_id = request.data.get("category")
     user = Users.objects.get(pk=user_id)
+    category = Categories.objects.get(pk=category_id)
     if user is None:
         return Response(0)
     else:
-        topic = Topics.objects.create(user=user, content=content)
+        topic = Topics.objects.create(user=user, content=content, title=title, category=category)
         createTopicStatistic(topic.id)
         return Response(topic.id)
 
@@ -182,7 +191,6 @@ def listTopicComment(request, topic_id):
             comment_list.append(data)
         return Response(list_topic_comment)
 
-
 @api_view(['GET'])
 def countNumberOfLikes(request, topic_id):
     info = IsLikedTopic.objects.filter(topic__id=topic_id)
@@ -203,8 +211,8 @@ def countNumberOfSubscribers(request, topic_id):
 
 @api_view(['GET'])
 def countNumberOfViews(request, topic_id):
-    info = TopicStatistic.objects.filter(topic__id=topic_id)
-    number_of_views = info.count()
+    info = TopicStatistic.objects.filter(topic__id=topic_id).first()
+    number_of_views = info.views
     data = {"topic_id": topic_id,
             "number_of_views": number_of_views}
     return Response(data)

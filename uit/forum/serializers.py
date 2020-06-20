@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
-from .models import Users, Subscribers, Topics, Comment, IsLikedTopic
+from .models import Users, Subscribers, Topics, Comment, IsLikedTopic, Categories
 
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['username', 'email', 'password', 'avatar']
+        fields = ['id', 'username', 'email', 'password', 'avatar']
 
 
 class ListUserSerializer(serializers.ModelSerializer):
@@ -16,12 +16,18 @@ class ListUserSerializer(serializers.ModelSerializer):
         model = Users
         fields = ['id', 'username', 'email', 'avatar']
 
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Categories
+        fields = ['id', 'name', 'is_active', 'created_at', 'parent']
+
 
 class TopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Topics
-        fields = ['id', 'user', 'content']
+        fields = ['id', 'user', 'content', 'category', 'title', 'created_at']
 
 
 class CommentSerializer(serializers.ModelSerializer):
