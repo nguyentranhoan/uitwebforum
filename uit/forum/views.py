@@ -129,7 +129,6 @@ def LikedTopic(request):
     return Response(info.id)
 
 
-
 @api_view(['POST'])
 def DislikeTopic(request):
     user_id = request.data.get("user")
@@ -220,11 +219,25 @@ def increaseTopicView(request, topic_id):
         topic_statistic = TopicStatistic.objects.filter(topic__id=topic_id).first()
         if topic_statistic is not None:
             number_of_views = topic_statistic.views
-            TopicStatistic.objects.filter(topic__id=topic_id).update(views=number_of_views+1)
-            return Response(number_of_views+1)
+            TopicStatistic.objects.filter(topic__id=topic_id).update(views=number_of_views + 1)
+            return Response(number_of_views + 1)
         else:
             createTopicStatistic(topic_id)
             return Response(1)
+
+
+@api_view(['GET'])
+def searchTopic(request, search_content):
+    info = Topics.objects.filter(content__icontains=f'{search_content}')
+    list_topic_id = []
+    if info is None:
+        return Response(0)
+    else:
+        for data in info:
+            topic_data = {"topic_id": data.id,
+                          "topic_content": data.content}
+            list_topic_id.append(topic_data)
+        return Response(list_topic_id)
 
 
 class UserTotalInfo(generics.RetrieveAPIView):

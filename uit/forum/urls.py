@@ -2,8 +2,10 @@ from django.urls import path, include
 
 from . import views
 
+
 app_name = 'forum'
 urlpatterns = [
+    path("search/<search_content>", views.searchTopic),
     path("like/", views.likeTopic),
     path("subscribe/", views.subsTopic),
     path("comment/<int:pk>", views.CommentUpdate.as_view()),
