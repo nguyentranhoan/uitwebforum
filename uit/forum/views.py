@@ -39,9 +39,9 @@ def register(request):
     check_username = Users.objects.filter(username=username).first()
     check_email = Users.objects.filter(email=email).first()
     if check_username is not None:
-        return Response({"message":"username already exists,"})
+        return Response({"message": "username already exists,"})
     if check_email is not None:
-        return Response({"message":"email already exists,"})
+        return Response({"message": "email already exists,"})
 
     info = Users.objects.create(username=username,
                                 password=password,
@@ -49,13 +49,13 @@ def register(request):
     return Response(info.id)
 
 
-class UpdateUserInfo(generics.RetrieveUpdateAPIView ):
+class UpdateUserInfo(generics.RetrieveUpdateAPIView):
     queryset = Users.objects.all()
     serializer_class = UpdateUserSerializer
 
 
 @api_view(['POST'])
-def forgot_password(request):
+def forgotPassword(request):
     email = request.data.get("email")
     password = request.data.get("password")
     # print(username, "\n", password)
@@ -71,6 +71,19 @@ def forgot_password(request):
 class ListUser(generics.ListAPIView):
     queryset = Users.objects.all()
     serializer_class = ListUserSerializer
+
+
+@api_view(['GET'])
+def listUser(request):
+    info = Users.objects.all()
+    list_user = []
+    for data in info:
+        user_info = {"id": data.id,
+                     "username": data.username,
+                     "email": data.email,
+                     "avatar": data.avatar.name}
+        list_user.append(user_info)
+    return Response(list_user)
 
 
 class UserTotalInfo(generics.RetrieveAPIView):
