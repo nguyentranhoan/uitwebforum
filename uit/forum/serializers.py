@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Users, Subscribers, Topics, Comment, IsLikedTopic, IsLikedComment
+from .models import Users, Subscribers, Topics, Comment, IsLikedTopic, IsLikedComment, Categories
 
 
 class UpdateUserSerializer(serializers.ModelSerializer):
@@ -8,6 +8,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ['username', 'email', 'password', 'avatar']
+
+
+class ListCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Categories
+        fields = ['id', 'name', 'parent']
 
 
 class ListUserSerializer(serializers.ModelSerializer):

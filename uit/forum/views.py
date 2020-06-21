@@ -4,9 +4,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic, IsLikedComment
+from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic, IsLikedComment, Categories
 from .serializers import TopicSerializer, CommentSerializer, ListUserSerializer, \
-    UpdateCommentSerializer, UserTotalInfoSerializer, UpdateUserSerializer
+    UpdateCommentSerializer, UserTotalInfoSerializer, UpdateUserSerializer, ListCategorySerializer
 
 
 # from django.contrib.auth.models import User
@@ -62,6 +62,11 @@ def forgot_password(request):
 class UpdateUserInfo(generics.UpdateAPIView):
     queryset = Users.objects.all()
     serializer_class = UpdateUserSerializer
+
+
+class ListCategory(generics.ListAPIView):
+    queryset = Categories.objects.all()
+    serializer_class = ListCategorySerializer
 
 
 class ListTopic(generics.ListAPIView):
