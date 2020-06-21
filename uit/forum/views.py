@@ -64,7 +64,12 @@ class UpdateUserInfo(generics.UpdateAPIView):
     serializer_class = UpdateUserSerializer
 
 
-class ListTopic(generics.ListCreateAPIView):
+class ListTopic(generics.ListAPIView):
+    queryset = Topics.objects.all()
+    serializer_class = TopicSerializer
+
+
+class CreateTopic(generics.CreateAPIView):
     queryset = Topics.objects.all()
     serializer_class = TopicSerializer
 

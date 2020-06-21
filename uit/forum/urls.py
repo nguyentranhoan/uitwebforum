@@ -18,7 +18,7 @@ urlpatterns = [
     path("api/topic/<int:topic_id>/comment/", views.listTopicComment),
     path("api/topic/list/", views.ListTopic.as_view()),
     path("api/topic/<int:pk>/update/", views.UpdateTopic.as_view()),
-    path("api/topic/create/", views.createTopic),
+    path("api/topic/create/", views.CreateTopic.as_view()),
     path("api/user/<user_id>/liked/topic/<topic_id>/check/", views.CheckUserLikedTopic),
     path("api/user/<user_id>/topic/<topic_id>/liked/comment/<comment_id>/check/", views.CheckUserLikedComment),
     path("api/user/<int:pk>/info/", views.UserTotalInfo.as_view()),
