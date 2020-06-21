@@ -173,8 +173,10 @@ class ListUser(generics.ListAPIView):
 @api_view(['GET'])
 def listTopicComment(request, topic_id):
     topic = Topics.objects.get(pk=topic_id)
-    data = {"topic_id": topic.id,
-            "content": topic.content}
+    data = {
+        "topic_id": topic.id,
+        "content": topic.content
+    }
     comment_list = []
     comment_data = {"comment_data": comment_list}
     list_topic_comment = [data, comment_data]
@@ -184,7 +186,9 @@ def listTopicComment(request, topic_id):
         comments = Comment.objects.filter(topic__id=topic_id)
         for comment in comments:
             user = Users.objects.get(pk=comment.user_id)
-            data = {"user_id": user.id,
+            data = {
+                    "id": comment.id,
+                    "user_id": user.id,
                     "user_username": user.username,
                     "content": comment.content,
                     "created_at": comment.created_at}
