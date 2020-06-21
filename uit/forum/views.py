@@ -49,7 +49,7 @@ def register(request):
     return Response(info.id)
 
 
-class UpdateUserInfo(generics.UpdateAPIView):
+class UpdateUserInfo(generics.RetrieveUpdateAPIView ):
     queryset = Users.objects.all()
     serializer_class = UpdateUserSerializer
 
