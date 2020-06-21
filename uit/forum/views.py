@@ -4,9 +4,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic
-from .serializers import UserSerializer, TopicSerializer, CommentSerializer, ListUserSerializer, \
-    UpdateCommentSerializer, UserTotalInfoSerializer
+from .models import Users, Topics, Comment, Subscribers, IsLikedTopic, TopicStatistic, IsLikedComment
+from .serializers import TopicSerializer, CommentSerializer, ListUserSerializer, \
+    UpdateCommentSerializer, UserTotalInfoSerializer, UpdateUserSerializer
 
 
 # from django.contrib.auth.models import User
@@ -22,7 +22,8 @@ def login(request):
     username = request.data.get("username")
     password = request.data.get("password")
     # print(username, "\n", password)
-    info = Users.objects.filter(username=username, password=password).first()
+    info = Users.objects.filter(username=username,
+                                password=password).first()
     if info is None:
         return Response({"message": "user does not exist!"})
     else:
@@ -35,7 +36,9 @@ def register(request):
     password = request.data.get("password")
     email = request.data.get("email")
     # print(username, "\n", password)
-    info = Users.objects.create(username=username, password=password, email=email)
+    info = Users.objects.create(username=username,
+                                password=password,
+                                email=email)
     if info is None:
         return Response({"message": "user does not exist!"})
     else:
@@ -56,12 +59,17 @@ def forgot_password(request):
         return Response(data)
 
 
-class UserInfo(generics.RetrieveUpdateAPIView):
+class UpdateUserInfo(generics.UpdateAPIView):
     queryset = Users.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UpdateUserSerializer
 
 
 class ListTopic(generics.ListCreateAPIView):
+    queryset = Topics.objects.all()
+    serializer_class = TopicSerializer
+
+
+class UpdateTopic(generics.UpdateAPIView):
     queryset = Topics.objects.all()
     serializer_class = TopicSerializer
 
@@ -83,7 +91,8 @@ def createTopic(request):
     if user is None:
         return Response(0)
     else:
-        topic = Topics.objects.create(user=user, content=content)
+        topic = Topics.objects.create(user=user,
+                                      content=content)
         createTopicStatistic(topic.id)
         return Response(topic.id)
 
@@ -102,54 +111,98 @@ class CommentUpdate(generics.UpdateAPIView):
 def subsTopic(request):
     user_id = request.data.get("user_id")
     topic_id = request.data.get("topic_id")
-    info = Subscribers.objects.filter(user__id=user_id, topic__id=topic_id).first()
+    info = Subscribers.objects.filter(user__id=user_id,
+                                      topic__id=topic_id).first()
     user = Users.objects.get(pk=user_id)
     topic = Topics.objects.get(pk=topic_id)
     if info is None:
-        subscriber = Subscribers.objects.create(user=user, topic=topic)
+        subscriber = Subscribers.objects.create(user=user,
+                                                topic=topic)
         return Response(subscriber.id)
     else:
         info.delete()
         return Response(0)
 
 
-@api_view(['POST'])
-def LikedTopic(request):
-    user_id = request.data.get("user_id")
-    topic_id = request.data.get("topic_id")
-    user = Users.objects.get(pk=user_id)
-    topic = Topics.objects.get(pk=topic_id)
-    info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id)[:1].get()
-    if info.is_liked:
-        print(info.is_liked)
-        IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=False)
-    else:
-        print(info.is_liked)
-        IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=True)
-    return Response(info.id)
+# @api_view(['POST'])
+# def LikedTopic(request):
+#     user_id = request.data.get("user_id")
+#     topic_id = request.data.get("topic_id")
+#     info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id)[:1].get()
+#     if info.is_liked:
+#         print(info.is_liked)
+#         IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=False)
+#     else:
+#         print(info.is_liked)
+#         IsLikedTopic.objects.filter(user=user_id, topic=topic_id).update(is_liked=True)
+#     return Response(info.id)
+#
+#
+# @api_view(['POST'])
+# def DislikeTopic(request):
+#     user_id = request.data.get("user")
+#     topic_id = request.data.get("topic")
+#     info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id).first()
+#     if info is None:
+#         return Response("User has not liked this topic yet!!!")
+#     else:
+#         info.delete()
+#         return Response(f"User: {user_id} no longer likes this topic: {topic_id}")
 
 
-@api_view(['POST'])
-def DislikeTopic(request):
-    user_id = request.data.get("user")
-    topic_id = request.data.get("topic")
-    info = IsLikedTopic.objects.filter(user=user_id, topic=topic_id).first()
+@api_view(['GET'])
+def CheckUserLikedTopic(request, user_id, topic_id):
+    info = IsLikedTopic.objects.filter(user__id=user_id,
+                                       topic__id=topic_id).first()
     if info is None:
-        return Response("User has not liked this topic yet!!!")
+        return Response(0)
     else:
-        info.delete()
-        return Response(f"User: {user_id} no longer likes this topic: {topic_id}")
+        return Response(1)
+
+
+@api_view(['GET'])
+def CheckUserLikedComment(request, user_id, topic_id, comment_id):
+    info = IsLikedTopic.objects.filter(user__id=user_id,
+                                       topic__id=topic_id,
+                                       comment__id=comment_id).first()
+    if info is None:
+        return Response(0)
+    else:
+        return Response(1)
 
 
 @api_view(['POST'])
 def likeTopic(request):
     user_id = request.data.get("user_id")
     topic_id = request.data.get("topic_id")
-    info = IsLikedTopic.objects.filter(user__id=user_id, topic__id=topic_id).first()
+    info = IsLikedTopic.objects.filter(user__id=user_id,
+                                       topic__id=topic_id).first()
     user = Users.objects.get(pk=user_id)
     topic = Topics.objects.get(pk=topic_id)
     if info is None:
-        liker = IsLikedTopic.objects.create(user=user, topic=topic)
+        liker = IsLikedTopic.objects.create(user=user,
+                                            topic=topic)
+        return Response(liker.id)
+    else:
+        info.delete()
+        return Response(0)
+
+
+@api_view(['POST'])
+def likeComment(request):
+    user_id = request.data.get("user_id")
+    topic_id = request.data.get("topic_id")
+    comment_id = request.data.get("comment_id")
+    info = IsLikedTopic.objects.filter(user__id=user_id,
+                                       topic__id=topic_id,
+                                       comment_id=comment_id).first()
+    user = Users.objects.get(pk=user_id)
+    topic = Topics.objects.get(pk=comment_id)
+    comment = Comment.objects.get(pk=comment_id)
+    if info is None:
+        liker = IsLikedTopic.objects.create(user=user,
+                                            topic=topic,
+                                            comment=comment)
         return Response(liker.id)
     else:
         info.delete()
@@ -184,7 +237,16 @@ def listTopicComment(request, topic_id):
 
 
 @api_view(['GET'])
-def countNumberOfLikes(request, topic_id):
+def countNumberOfLikesComment(request, comment_id):
+    info = IsLikedComment.objects.filter(comment__id=comment_id)
+    number_of_likes = info.count()
+    data = {"comment_id": comment_id,
+            "number_of_likes": number_of_likes}
+    return Response(data)
+
+
+@api_view(['GET'])
+def countNumberOfLikesTopic(request, topic_id):
     info = IsLikedTopic.objects.filter(topic__id=topic_id)
     number_of_likes = info.count()
     data = {"topic_id": topic_id,
@@ -193,7 +255,7 @@ def countNumberOfLikes(request, topic_id):
 
 
 @api_view(['GET'])
-def countNumberOfSubscribers(request, topic_id):
+def countNumberOfSubscribersTopic(request, topic_id):
     info = Subscribers.objects.filter(topic__id=topic_id)
     number_of_subscribers = info.count()
     data = {"topic_id": topic_id,
@@ -204,7 +266,7 @@ def countNumberOfSubscribers(request, topic_id):
 @api_view(['GET'])
 def countNumberOfViews(request, topic_id):
     info = TopicStatistic.objects.filter(topic__id=topic_id)
-    number_of_views = info.count()
+    number_of_views = info.views
     data = {"topic_id": topic_id,
             "number_of_views": number_of_views}
     return Response(data)

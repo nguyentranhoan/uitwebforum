@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import Users, Subscribers, Topics, Comment, IsLikedTopic
+from .models import Users, Subscribers, Topics, Comment, IsLikedTopic, IsLikedComment
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
@@ -21,7 +21,7 @@ class TopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Topics
-        fields = ['id', 'user', 'content']
+        fields = ['id', 'user', 'category', 'title', 'content']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -60,6 +60,13 @@ class IsLikedTopicSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'topic']
 
 
+class IsLikedCommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IsLikedComment
+        fields = ['id', 'user', 'topic', 'comment']
+
+
 class TopicCommentSerializer(serializers.ModelSerializer):
     topic_comment = ListCommentSerializer(many=True, read_only=True)
     queryset = Topics.objects.all()
@@ -77,4 +84,4 @@ class UserTotalInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['id', 'username', 'user_topic', 'user_comment', 'user_likes_topic', 'user_subscriber']
+        fields = ['id', 'username', "avatar", 'user_topic', 'user_comment', 'user_likes_topic', 'user_subscriber']
