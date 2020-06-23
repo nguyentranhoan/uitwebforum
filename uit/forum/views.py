@@ -155,7 +155,8 @@ def listTopicComment(request, topic_id):
         comments = Comment.objects.filter(topic__id=topic_id)
         for comment in comments:
             user = Users.objects.get(pk=comment.user_id)
-            data = {"user_id": user.id,
+            data = {"id": comment.id,
+                    "user_id": user.id,
                     "user_username": user.username,
                     "content": comment.content,
                     "created_at": comment.created_at}
@@ -234,8 +235,8 @@ def countNumberOfSubscribersTopic(request, topic_id):
 
 @api_view(['GET'])
 def countNumberOfViews(request, topic_id):
-    info = TopicStatistic.objects.filter(topic__id=topic_id)
-    number_of_views = info.views
+    info = TopicStatistic.objects.filter(topic__id=topic_id).first()
+    number_of_views = info.views or 0
     data = {"topic_id": topic_id,
             "number_of_views": number_of_views}
     return Response(data)
