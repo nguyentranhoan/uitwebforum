@@ -1,0 +1,573 @@
+# postgres
+
+
+create user meete with password 'p4ssw0rd' superuser;
+create database merchant_report;
+grant all privileges on database merchant_report to meete;
+
+
+
+create user hoan with password '1234444' superuser;
+create database uit_mobile;
+grant all privileges on database uit_mobile to hoan;
+
+ALTER DATABASE uit_mobile SET timezone TO 'Asia/Ho_Chi_Minh';
+
+
+create database hotel_helper;
+grant all privileges on database hotel_helper to hoan;
+ALTER DATABASE hotel_helper SET timezone TO 'Asia/Ho_Chi_Minh';
+
+create database uit_web_forum;
+grant all privileges on database uit_web_forum to hoan;
+ALTER DATABASE uit_web_forum SET timezone TO 'Asia/Ho_Chi_Minh';
+
+
+insert into merchant_report.public.user_info(user_name) values ('myaccount20');
+
+insert into uit_mobile.public."meete"(id, user_name) VALUES (1, 'user1');
+select * from merchant_report.public.user_info;
+
+
+create database django_web;
+grant all privileges  on database  django_web to hoan;
+
+
+
+
+
+
+## install postgres - docker
+
+docker run -d \
+-itu root \
+--restart always \
+--name postgres-11.6.1 \
+--hostname postgres-11.6 \
+--network host \
+-p 5433:5433 \
+-e POSTGRES_PASSWORD=123444 \
+postgres:11.6
+##############################
+
+## create new-user
+
+create user meete with password 'p4ssw0rd' superuser;
+create database merchant_report;
+grant all privileges on database merchant_report to meete;
+
+
+
+create user hoan with password '1234444' superuser;
+create database uit_mobile;
+grant all privileges on database uit_mobile to hoan;
+
+ALTER DATABASE uit_mobile SET timezone TO 'Asia/Ho_Chi_Minh';
+
+
+note1: config file:// /var/lib/posgresql/data/postgresql.conf --> enabale: wal-level = logical
+note2: config file:// /var/lib/posgresql/data/pg_hba.conf --> add: host all all 127.0.0.1/32    trust
+##############################
+
+## update postgres
+
+
+apt-get update && apt-get install -f -y software-properties-common build-essential pkg-config git postgresql-server-dev-11
+apt-get update && apt-get install git python-psycopg2 libpq-dev make postgresql-server-dev-all postgresql-common gcc
+
+ apt-get update && apt-get install libpq-dev
+ apt-get update && apt-get install make
+ apt-get install postgresql-server-dev-all
+ apt-get install postgresql-common
+ apt-get update && apt-get install gcc
+ apt-get install -y protobuf-c-compiler=1.2.*
+ apt-get update && apt-get install libprotobuf-c-dev
+ git clone https://github.com/debezium/postgres-decoderbufs.git
+ cd /postgres-decoderbufs
+
+PATH=/usr/bin/pg_config:$PATH
+PATH=/usr/lib/postgresql/11/bin/pg_config:$PATH
+USE_PGXS=1 make
+USE_PGXS=1 make install
+
+
+#mongo
+
+## docker
+docker run -d -itu root --restart always --name mongo-latest --hostname mongo-latest --network host -p 27017:27017 mongo
+
+
+
+# kafka
+
+## kafka run
+
+sudo ./bin/zookeeper-server-start ./etc/kafka/zookeeper.properties
+sudo ./bin/kafka-server-start ./etc/kafka/server.properties
+sudo ./bin/schema-registry-start ./etc/schema-registry/schema-registry.properties
+sudo ./bin/connect-distributed ./etc/schema-registry/connect-avro-distributed.properties ./etc/kafka/connect-distributed.properties
+#####################
+
+## conduktor run
+
+sudo ./bin/zookeeper-server-start ./etc/kafka/zookeeper.properties
+sudo ./bin/kafka-server-start ./etc/kafka/server.properties
+sudo ./bin/schema-registry-start ./etc/schema-registry/schema-registry.properties
+sudo ./bin/connect-distributed ./etc/schema-registry/connect-avro-distributed.properties ./etc/kafka/connect-distributed.properties
+
+sudo java -jar Conduktor-1.0.jar
+
+sudo java -jar Conduktor-1.0.jar
+######################################
+
+# streamset
+
+mkdir /meete/streamsets-dc/
+    |
+    V
+sudo docker run \
+-itu root \
+--restart on-failure \
+-p 18630:18630 \
+-d \
+--name streamsets-dc \
+streamsets/datacollector:latest
+    |
+    V
+
+sudo docker cp streamsets-dc:/etc/sdc /meete/streamsets-dc/sdc/ && \
+sudo docker cp streamsets-dc:/data /meete/streamsets-dc/sdc-data/
+
+    |
+    V
+sudo docker rm -vf streamsets-dc
+
+    |
+    V
+
+sudo docker run \
+-itu root \
+--restart on-failure \
+--network host \
+-p 18630:18630 \
+-d \
+--name streamsets-dc \
+-v /meete/streamsets-dc/sdc-data:/data \
+-v /meete/streamsets-dc/sdc:/etc/sdc \
+streamsets/datacollector:latest
+###############################
+
+# docker
+
+## create a Dockerfile
+FROM debian
+
+ENV DEBIAN_FRONTEND noninteractive
+
+ENV TZ Asia/Ho_Chi_Minh
+
+FROM debian
+
+ENV DEBIAN_FRONTEND noninteractive
+
+ENV TZ Asia/Ho_Chi_Minh
+
+RUN echo $TZ > /etc/timezone && \
+    apt-get update -y && \
+    apt-get install -y tzdata python3 python3-pip python3-pkg-resources python3-idna python3-six python3-xdg && \
+    python3 -m pip install --no-cache-dir --upgrade \
+        pip \
+        setuptools \
+        wheel && \
+    python3 -m pip install --no-cache-dir --upgrade \
+        apscheduler \
+        boltons \
+        cachetools \
+        click \
+        elasticsearch \
+        elasticsearch-dsl \
+        fastapi[all] \
+        flask \
+        flask-injector \
+        flask-sqlalchemy \
+        flatten-dict \
+        gunicorn \
+        hashids \
+        injector \
+        jinja2 \
+        kombu \
+        markdown2 \
+        mysql-connector-python \
+        pika \
+        pillow \
+        psycopg2-binary \
+        pyfcm \
+        pymongo \
+        python-barcode \
+        python-consul \
+        pytz \
+        pyyaml \
+        qrcode \
+        redis \
+	"starlette==0.12.9" \
+        sqlalchemy && \
+    apt-get purge -y --auto-remove python3-pip && \
+    rm -rf /var/lib/apt/* && \
+    rm -rf /tmp/*
+
+RUN groupadd -g 1000 meete && useradd -u 1000 -g 1000 meete
+COPY . /
+
+ENTRYPOINT ["python3", "/main/app.py"]
+
+## build Dockerfile
+
+docker build -t imageName:tag .
+
+
+
+
+###############################################
+# wget 
+## wget large file from google drive
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1XGYh8anNfjylOXfaDRu7YJx1pIQkorQL' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1XGYh8anNfjylOXfaDRu7YJx1pIQkorQL" -O pre_deploy.tar.xz && rm -rf /tmp/cookies.txt
+############################################
+# python
+
+## kill all python processes
+
+pkill -9 python
+
+#######################################
+
+#java
+## maven-jooq
+generate table
+1. install maven: apt-get install mvn
+2. generating table: mvn clean install -DskipTests
+
+
+
+########################
+SERVER SIDE RENDERING
+
+
+
+
+
+
+
+
+###############
+DJANGO POSTGRES
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'uit_mobile',
+        'USER': 'hoan',
+        'PASSWORD': '1234444',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+
+
+
+
+
+##############
+GITHUB
+
+#work flow
+
+1. create respository
+2. clone respository
+3. make changes
+4. git add -filename
+5. git commit-m "your message"
+6. git push
+7. (optional) git pull : to pull the latest version of code
+8. git reset --hard <commit hash>
+
+#work with branches
+##Before creating a new branch, pull the changes from upstream. Your master needs to be up to date.
+1. git pull
+2. git checkout -b [name_of_your_new_branch] #Create the branch on your local machine and switch in this branch
+3. git push origin [name_of_your_new_branch] # Push the branch on github 
+4. Add a new remote for your branch :
+
+$ git remote add [name_of_your_remote] [name_of_your_new_branch]
+Push changes from your commit into your branch :
+
+$ git push [name_of_your_new_remote] [url]
+Update your branch when the original branch from official repository has been updated :
+
+$ git fetch [name_of_your_remote]
+Then you need to apply to merge changes if your branch is derivated from develop you need to do :
+
+$ git merge [name_of_your_remote]/develop
+Delete a branch on your local filesystem :
+
+$ git branch -d [name_of_your_new_branch]
+To force the deletion of local branch on your filesystem :
+
+$ git branch -D [name_of_your_new_branch]
+Delete the branch on github :
+
+$ git push origin :[name_of_your_new_branch]
+
+
+
+
+
+Git Commands
+git config
+Usage: git config –global user.name “[name]”  
+
+Usage: git config –global user.email “[email address]”  
+
+This command sets the author name and email address respectively to be used with your commits.
+
+Git Config Command - Git Commands - Edureka
+
+git init
+Usage: git init [repository name]
+
+ 
+
+This command is used to start a new repository.
+
+GitInit Command - Git Commands - Edureka
+
+git clone
+Usage: git clone [url]  
+
+This command is used to obtain a repository from an existing URL.
+
+Git Clone Command - Git Commands - Edureka
+
+git add
+Usage: git add [file]  
+
+This command adds a file to the staging area.
+
+Git Add Command - Git Commands - Edureka
+
+Usage: git add *  
+
+This command adds one or more to the staging area.
+
+Git Add Command - Git Commands - Edureka
+
+git commit
+Usage: git commit -m “[ Type in the commit message]”  
+
+This command records or snapshots the file permanently in the version history.
+
+Git Commit Command - Git Commands - Edureka
+
+Usage: git commit -a  
+
+This command commits any files you’ve added with the git add command and also commits any files you’ve changed since then.
+
+Git Commit Command - Git Commands - Edureka
+
+git diff
+Usage: git diff  
+
+This command shows the file differences which are not yet staged.
+
+Git Diff Command - Git Commands - Edureka
+
+ Usage: git diff –staged 
+
+This command shows the differences between the files in the staging area and the latest version present.
+
+Git Diff Command - Git Commands - Edureka
+
+Usage: git diff [first branch] [second branch]  
+
+This command shows the differences between the two branches mentioned.
+
+Git Diff Command - Git Commands - Edureka
+
+git reset
+Usage: git reset [file]  
+
+This command unstages the file, but it preserves the file contents.
+
+Git Reset Command - Git Commands - Edureka
+
+Usage: git reset [commit]  
+
+This command undoes all the commits after the specified commit and preserves the changes locally.
+
+Git Reset Command - Git Commands - Edureka
+
+Usage: git reset –hard [commit]  This command discards all history and goes back to the specified commit.
+
+Git Reset Command - Git Commands - Edureka
+
+git status
+Usage: git status  
+
+This command lists all the files that have to be committed.
+
+Git Status Command - Git Commands - Edureka
+
+git rm
+Usage: git rm [file]  
+
+This command deletes the file from your working directory and stages the deletion.
+
+Git Rm Command - Git Commands - Edureka
+
+git log
+Usage: git log  
+
+This command is used to list the version history for the current branch.
+
+Git Log Command - Git Commands - Edureka
+
+Usage: git log –follow[file]  
+
+This command lists version history for a file, including the renaming of files also.
+
+Git Log Command - Git Commands - Edureka
+
+git show
+Usage: git show [commit]  
+
+This command shows the metadata and content changes of the specified commit.
+
+Git Show Command - Git Commands - Edureka
+
+git tag
+Usage: git tag [commitID]  
+
+This command is used to give tags to the specified commit.
+
+Git Tag Command - Git Commands - Edureka
+
+git branch
+Usage: git branch  
+
+This command lists all the local branches in the current repository.
+
+Git Branch Command - Git Commands - Edureka
+
+Usage: git branch [branch name]  
+
+This command creates a new branch.
+
+Git Branch Command - Git Commands - Edureka
+
+Usage: git branch -d [branch name]  
+
+This command deletes the feature branch.
+
+Git Branch Command - Git Commands - Edureka
+
+git checkout
+Usage: git checkout [branch name]  
+
+This command is used to switch from one branch to another.
+
+Git Checkout Command - Git Commands - Edureka
+
+Usage: git checkout -b [branch name]  
+
+This command creates a new branch and also switches to it.
+
+Git Checkout Command - Git Commands - Edureka
+
+git merge
+Usage: git merge [branch name]  
+
+This command merges the specified branch’s history into the current branch.
+
+Git Merge Command - Git Commands - Edureka
+
+git remote
+Usage: git remote add [variable name] [Remote Server Link]  
+
+This command is used to connect your local repository to the remote server.
+
+Git Remote Command - Git Commands - Edureka
+
+git push
+Usage: git push [variable name] master  
+
+This command sends the committed changes of master branch to your remote repository.
+
+Git Push Command - Git Commands - Edureka
+
+Usage: git push [variable name] [branch]  
+
+This command sends the branch commits to your remote repository.
+
+Git Push Command - Git Commands - Edureka
+
+Usage: git push –all [variable name]  
+
+This command pushes all branches to your remote repository.
+
+Git Push Command - Git Commands - Edureka
+
+Usage: git push [variable name] :[branch name]  
+
+This command deletes a branch on your remote repository.
+
+Git Push Command - Git Commands - Edureka
+
+git pull
+Usage: git pull [Repository Link]  
+
+This command fetches and merges changes on the remote server to your working directory.
+
+Git Pull Command - Git Commands - Edureka
+
+git stash
+Usage: git stash save  
+
+This command temporarily stores all the modified tracked files.
+
+Git Stash Command - Git Commands - Edureka
+
+Usage: git stash pop  
+
+This command restores the most recently stashed files.
+
+Git Stash Command - Git Commands - Edureka
+
+Usage: git stash list  
+
+This command lists all stashed changesets.
+
+Git Stash Command - Git Commands - Edureka
+
+Usage: git stash drop  
+
+This command discards the most recently stashed changeset.
+
+Git Stash Command - Git Commands - Edureka	
+
+
+
+
+##############
+Django web development
+
+# create project
+django-admin startproject "name"
+
+# run server
+python manage.py runserver "port"
+
+# create a polls app
+python manage.py startapp "name"
+
+
+
+
