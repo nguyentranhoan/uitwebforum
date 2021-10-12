@@ -91,4 +91,4 @@ class UserTotalInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['id', 'username', "avatar", 'user_topic', 'user_comment', 'user_likes_topic', 'user_subscriber']
+        fields = ['id', 'username', "email", 'user_topic', 'user_comment', 'user_likes_topic', 'user_subscriber']
